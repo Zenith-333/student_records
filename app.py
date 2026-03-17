@@ -14,6 +14,11 @@ class Student(db.Model):
     def to_dict(self):
         return {"id": self.id, "name": self.name, "age": self.age, "grade": self.grade}
 
+# Ensure tables are created when the app starts (works with Gunicorn on Render)
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
 @app.route('/students', methods=['POST'])
 def add_student():
     data = request.json
@@ -28,5 +33,5 @@ def get_students():
     return jsonify([student.to_dict() for student in students])
 
 if __name__ == '__main__':
-    db.create_all()  # Create database tables
+    # Local testing only; Render uses Gunicorn
     app.run(debug=True)
