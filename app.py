@@ -1,8 +1,16 @@
+import os
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///students.db'
+
+# UPDATED: Read the DATABASE_URL from the environment (Render sets this automatically)
+# If it's not found (like on your local computer), use the sqlite file.
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///students.db')
+
+# This line is often needed to avoid a warning
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db = SQLAlchemy(app)
 
 class Student(db.Model):
@@ -14,11 +22,9 @@ class Student(db.Model):
     def to_dict(self):
         return {"id": self.id, "name": self.name, "age": self.age, "grade": self.grade}
 
-# --- UPDATED DATABASE CREATION ---
-# Instead of @app.before_first_request, we use app.app_context()
+# UPDATED: Use app.app_context() instead of before_first_request
 with app.app_context():
     db.create_all()
-# ---------------------------------
 
 @app.route('/students', methods=['POST'])
 def add_student():
